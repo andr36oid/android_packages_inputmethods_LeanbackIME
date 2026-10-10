@@ -18,6 +18,7 @@ package com.android.inputmethod.leanback;
 
 import android.graphics.PointF;
 import android.inputmethodservice.InputMethodService;
+import android.media.AudioManager;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.Keyboard.Key;
 import android.util.Log;
@@ -135,6 +136,7 @@ public class LeanbackKeyboardController implements LeanbackKeyboardContainer.Voi
             };
 
     private InputMethodService mContext;
+    private AudioManager mAudio;
     private InputListener mInputListener;
     private LeanbackKeyboardContainer mContainer;
 
@@ -158,6 +160,7 @@ public class LeanbackKeyboardController implements LeanbackKeyboardContainer.Voi
     LeanbackKeyboardController(InputMethodService context, InputListener listener,
             LeanbackKeyboardContainer container) {
         mContext = context;
+        mAudio = context.getSystemService(AudioManager.class);
         mResizeSquareDistance = context.getResources().getDimension(R.dimen.resize_move_distance);
         mResizeSquareDistance *= mResizeSquareDistance;
         mInputListener = listener;
@@ -312,11 +315,33 @@ public class LeanbackKeyboardController implements LeanbackKeyboardContainer.Voi
         if (mContainer.getNextFocusInDirection(dir, mDownFocus, mTempFocus)) {
             mContainer.setFocus(mTempFocus);
             mDownFocus.set(mTempFocus);
+            playSound(navigationSound(dir));
 
             clearKeyIfNecessary();
         }
 
         return true;
+    }
+
+    // The system's key and navigation sounds, as other keyboards play them: they follow
+    // the touch sounds setting and the console's sound set.
+    private void playSound(int effect) {
+        if (mAudio != null) {
+            mAudio.playSoundEffect(effect);
+        }
+    }
+
+    private static int navigationSound(int dir) {
+        switch (dir) {
+            case LeanbackKeyboardContainer.DIRECTION_LEFT:
+                return AudioManager.FX_FOCUS_NAVIGATION_LEFT;
+            case LeanbackKeyboardContainer.DIRECTION_RIGHT:
+                return AudioManager.FX_FOCUS_NAVIGATION_RIGHT;
+            case LeanbackKeyboardContainer.DIRECTION_UP:
+                return AudioManager.FX_FOCUS_NAVIGATION_UP;
+            default:
+                return AudioManager.FX_FOCUS_NAVIGATION_DOWN;
+        }
     }
 
     private void clearKeyIfNecessary() {
@@ -342,9 +367,11 @@ public class LeanbackKeyboardController implements LeanbackKeyboardContainer.Voi
                 mContainer.onVoiceClick();
                 break;
             case KeyFocus.TYPE_ACTION:
+                playSound(AudioManager.FX_KEYPRESS_RETURN);
                 mInputListener.onEntry(InputListener.ENTRY_TYPE_ACTION, 0, null);
                 break;
             case KeyFocus.TYPE_SUGGESTION:
+                playSound(AudioManager.FX_KEYPRESS_STANDARD);
                 mInputListener.onEntry(InputListener.ENTRY_TYPE_SUGGESTION, 0,
                         mContainer.getSuggestionText(keyFocus.index));
                 break;
@@ -361,6 +388,9 @@ public class LeanbackKeyboardController implements LeanbackKeyboardContainer.Voi
     }
 
     private void handleCommitKeyboardKey(int code, CharSequence label) {
+        playSound(code == Keyboard.KEYCODE_DELETE ? AudioManager.FX_KEYPRESS_DELETE
+                : code == LeanbackKeyboardView.ASCII_SPACE ? AudioManager.FX_KEYPRESS_SPACEBAR
+                : AudioManager.FX_KEYPRESS_STANDARD);
         switch (code) {
             case Keyboard.KEYCODE_MODE_CHANGE:
                 if (Log.isLoggable(TAG, Log.VERBOSE)) {
@@ -546,6 +576,7 @@ public class LeanbackKeyboardController implements LeanbackKeyboardContainer.Voi
                 handleCommitKeyboardKey(LeanbackKeyboardView.KEYCODE_CAPS_LOCK, null);
                 break;
             case KeyEvent.KEYCODE_ENTER:
+                playSound(AudioManager.FX_KEYPRESS_RETURN);
                 if (mContainer != null) {
                     KeyFocus keyFocus = mContainer.getCurrFocus();
                     if (keyFocus != null && keyFocus.type ==  KeyFocus.TYPE_SUGGESTION) {
