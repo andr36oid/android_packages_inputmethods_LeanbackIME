@@ -65,7 +65,12 @@
 
         <Button
             android:id="@+id/enter"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:autoSizeTextType="uniform"
+            android:autoSizeMinTextSize="9sp"
+            android:autoSizeMaxTextSize="@dimen/enter_key_font_size"
             android:layout_height="@dimen/enter_key_height"
             android:layout_gravity="center"
             android:background="@null"

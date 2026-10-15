@@ -25,6 +25,7 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.text.TextUtils;
 import android.view.inputmethod.CompletionInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
@@ -318,9 +319,12 @@ public class LeanbackImeService extends InputMethodService {
                 }
                 ic.commitText(c, 1);
                 mEnterSpaceBeforeCommitting = true;
-                // go straight into action (skip updating suggestions)
-            case LeanbackKeyboardController.InputListener.ENTRY_TYPE_ACTION:
+                // go straight into action (skip updating suggestions), keyboard stays
                 sendDefaultEditorAction(false);
+                updateSuggestions = false;
+                break;
+            case LeanbackKeyboardController.InputListener.ENTRY_TYPE_ACTION:
+                performAction(ic);
                 updateSuggestions = false;
                 break;
             case LeanbackKeyboardController.InputListener.ENTRY_TYPE_DISMISS:
@@ -335,6 +339,30 @@ public class LeanbackImeService extends InputMethodService {
 
         if (mKeyboardController.areSuggestionsEnabled() && updateSuggestions) {
             mKeyboardController.updateSuggestions(mSuggestionsFactory.getSuggestions());
+        }
+    }
+
+    /**
+     * The action button (Done, Next, or the app's own label such as "Finish"). It used to send
+     * only the field's default action: with the app's own label that is the wrong one, and
+     * many fields have none, so the button did nothing and the keyboard stayed. Now the app's
+     * action goes out, and the keyboard closes afterwards unless the action moves on to the
+     * next field.
+     */
+    private void performAction(InputConnection ic) {
+        final EditorInfo ei = getCurrentInputEditorInfo();
+        int action = EditorInfo.IME_ACTION_UNSPECIFIED;
+        if (ei != null && !TextUtils.isEmpty(ei.actionLabel)
+                && ei.actionId != EditorInfo.IME_ACTION_UNSPECIFIED) {
+            action = ei.actionId;
+        } else if (ei != null) {
+            action = ei.imeOptions & EditorInfo.IME_MASK_ACTION;
+        }
+        if (action != EditorInfo.IME_ACTION_UNSPECIFIED && action != EditorInfo.IME_ACTION_NONE) {
+            ic.performEditorAction(action);
+        }
+        if (action != EditorInfo.IME_ACTION_NEXT && action != EditorInfo.IME_ACTION_PREVIOUS) {
+            requestHideSelf(0);
         }
     }
 
