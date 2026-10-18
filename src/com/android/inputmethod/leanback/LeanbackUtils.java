@@ -16,7 +16,11 @@
 
 package com.android.inputmethod.leanback;
 
+import android.content.Context;
+import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.os.Handler;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.inputmethod.EditorInfo;
@@ -62,6 +66,27 @@ public class LeanbackUtils {
      */
     public static int getInputTypeVariation(EditorInfo attribute) {
         return attribute.inputType & EditorInfo.TYPE_MASK_VARIATION;
+    }
+
+    /**
+     * The system accent colour as the dark system theme uses it, so the keyboard follows the
+     * accent picked in Settings > Personalization.
+     */
+    public static int getAccentColor(Context context) {
+        final TypedArray a = new ContextThemeWrapper(context,
+                android.R.style.Theme_DeviceDefault)
+                .obtainStyledAttributes(new int[] { android.R.attr.colorAccent });
+        try {
+            return a.getColor(0, context.getColor(R.color.ime_accent_fallback));
+        } finally {
+            a.recycle();
+        }
+    }
+
+    /** Black or white, whichever reads better on the given colour. */
+    public static int getContrastColor(int color) {
+        // Above this luminance black text has more contrast than white (WCAG ratio).
+        return Color.luminance(color) > 0.179f ? Color.BLACK : Color.WHITE;
     }
 
     public static void sendAccessibilityEvent(final View view, boolean focusGained) {

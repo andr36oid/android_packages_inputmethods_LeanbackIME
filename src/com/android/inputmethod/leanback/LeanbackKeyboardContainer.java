@@ -49,6 +49,12 @@ import android.view.inputmethod.InputMethodManager;
 import android.view.inputmethod.InputMethodSubtype;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.text.TextUtils;
@@ -60,6 +66,7 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+import android.widget.TextView;
 import android.util.Log;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.Keyboard.Key;
@@ -399,6 +406,8 @@ public class LeanbackKeyboardContainer {
     private ScaleAnimation mSelectorAnimation;
     private View mSelector;
     private float mOverestimate;
+    // The focus ring sits this far outside the focused key, like on the setup wizard's buttons
+    private float mFocusRingOutset;
 
     // The modeled physical position of the current selection in cm
     private PointF mPhysicalSelectPos = new PointF(2, .5f);
@@ -583,6 +592,9 @@ public class LeanbackKeyboardContainer {
         mSelectorAnimation = new ScaleAnimation((FrameLayout) mSelector);
 
         mOverestimate = mContext.getResources().getFraction(R.fraction.focused_scale, 1, 1);
+        mFocusRingOutset = res.getDimension(R.dimen.focus_ring_outset);
+        styleActionButton(res);
+        styleButtonHints((TextView) mRootView.findViewById(R.id.button_hints));
         float scale = context.getResources().getFraction(R.fraction.clicked_scale, 1, 1);
         mClickAnimDur = context.getResources().getInteger(R.integer.clicked_anim_duration);
         mSelectorAnimator = ValueAnimator.ofFloat(1.0f, scale);
@@ -616,6 +628,43 @@ public class LeanbackKeyboardContainer {
             }
         });
 
+    }
+
+    /** The action key is a filled accent button, like the setup wizard's main button. */
+    private void styleActionButton(Resources res) {
+        final int accent = LeanbackUtils.getAccentColor(mContext);
+        final GradientDrawable background = new GradientDrawable();
+        background.setShape(GradientDrawable.RECTANGLE);
+        background.setCornerRadius(res.getDimension(R.dimen.key_corner_radius));
+        background.setColor(accent);
+        mActionButtonView.setBackground(background);
+        mActionButtonView.setTextColor(LeanbackUtils.getContrastColor(accent));
+    }
+
+    /** Button names in the hint line in bold white, what they do in the dimmer hint colour. */
+    private static void styleButtonHints(TextView hints) {
+        if (hints == null) {
+            return;
+        }
+        final CharSequence text = hints.getText();
+        final SpannableString styled = new SpannableString(text);
+        final String plain = text.toString();
+        int start = 0;
+        for (String part : plain.split(" \u00b7 ")) {
+            final int at = plain.indexOf(part, start);
+            if (at < 0) {
+                break;
+            }
+            // "L1/R1 move": the button is everything up to the first space
+            final int space = part.indexOf(' ');
+            final int end = at + (space > 0 ? space : part.length());
+            styled.setSpan(new StyleSpan(Typeface.BOLD), at, end,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            styled.setSpan(new ForegroundColorSpan(0xFFFFFFFF), at, end,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            start = at + part.length();
+        }
+        hints.setText(styled);
     }
 
     public void startVoiceRecording() {
@@ -1096,6 +1145,9 @@ public class LeanbackKeyboardContainer {
         if (major / minor < 1.1) {
             width = height = Math.max(width, height);
         }
+
+        width += 2 * mFocusRingOutset;
+        height += 2 * mFocusRingOutset;
 
         float x = rect.exactCenterX() - width/2;
         float y = rect.exactCenterY() - height/2;

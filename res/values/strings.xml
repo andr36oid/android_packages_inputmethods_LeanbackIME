@@ -83,4 +83,8 @@
     <string name="keyboard_headset_required_to_hear_password">Plug in a headset to hear password keys spoken.</string>
     <!-- The value of a keyboard key announced when accessibility is enabled and no headsed is used. [CHAR LIMIT=NONE] -->
     <string name="keyboard_password_character_no_headset">Dot.</string>
+    <!-- andr36oid: line under the on-screen keyboard naming the game buttons it handles
+         (LeanbackKeyboardController). Button names (A, B, X, Y, L1/R1, L3, R3, Start) stay
+         as printed on the console. Keep it short: one line on a 640 px wide screen. -->
+    <string name="andr36oid_button_hints">A type · X delete · Y space · L1/R1 move · L3 symbols · R3 caps · Start enter · B close</string>
 </resources>

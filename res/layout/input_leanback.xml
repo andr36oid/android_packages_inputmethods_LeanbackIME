@@ -15,6 +15,8 @@
  limitations under the License.
 -->
 
+<!-- andr36oid: the keys and the action key sit side by side, centred as one row, so the
+     action key never runs off a narrow screen. -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:leanbackime="http://schemas.android.com/apk/res/com.android.inputmethod.leanback"
     android:layout_width="match_parent"
@@ -24,7 +26,7 @@
     android:gravity="bottom" >
 
     <LinearLayout
-        android:id="@+id/keyboard"
+        android:id="@+id/keys_row"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -38,13 +40,44 @@
             android:clipChildren="false"
             leanbackime:columnCount="11"
             leanbackime:rowCount="5" />
+
+        <FrameLayout
+            android:layout_width="@dimen/action_key_width"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="@dimen/action_key_margin" >
+
+            <!-- Accent background and text colour are set in LeanbackKeyboardContainer -->
+            <Button
+                android:id="@+id/enter"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/enter_key_height"
+                android:layout_gravity="center"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:autoSizeTextType="uniform"
+                android:autoSizeMinTextSize="9sp"
+                android:autoSizeMaxTextSize="@dimen/enter_key_font_size"
+                android:background="@null"
+                android:stateListAnimator="@null"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:fontFamily="sans-serif-medium"
+                android:paddingLeft="@dimen/enter_key_padding_horizontal"
+                android:paddingRight="@dimen/enter_key_padding_horizontal"
+                android:paddingTop="0dp"
+                android:paddingBottom="0dp"
+                android:text="@string/label_next_key"
+                android:textAllCaps="false"
+                android:textColor="@color/enter_key_font_color"
+                android:textSize="@dimen/enter_key_font_size" />
+        </FrameLayout>
     </LinearLayout>
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@id/keyboard"
-        android:layout_alignTop="@id/keyboard"
+        android:layout_alignBottom="@id/keys_row"
+        android:layout_alignTop="@id/keys_row"
         android:layout_centerHorizontal="true" >
 
         <com.android.inputmethod.leanback.voice.RecognizerView
@@ -53,33 +86,6 @@
             android:layout_height="@dimen/recognizer_size"
             android:layout_gravity="center"
             android:visibility="invisible" />
-    </FrameLayout>
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@id/keyboard"
-        android:layout_alignParentRight="true"
-        android:layout_alignTop="@id/keyboard"
-        android:layout_toRightOf="@id/keyboard" >
-
-        <Button
-            android:id="@+id/enter"
-            android:layout_width="match_parent"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:autoSizeTextType="uniform"
-            android:autoSizeMinTextSize="9sp"
-            android:autoSizeMaxTextSize="@dimen/enter_key_font_size"
-            android:layout_height="@dimen/enter_key_height"
-            android:layout_gravity="center"
-            android:background="@null"
-            android:fontFamily="sans-serif-regular"
-            android:paddingLeft="@dimen/enter_key_padding_horizontal"
-            android:paddingRight="@dimen/enter_key_padding_horizontal"
-            android:text="@string/label_next_key"
-            android:textColor="@color/enter_key_font_color"
-            android:textSize="@dimen/enter_key_font_size" />
     </FrameLayout>
 
 </RelativeLayout>

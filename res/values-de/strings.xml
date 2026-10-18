@@ -37,4 +37,5 @@
     <string name="keyboardview_keycode_right" msgid="7152000779741202144">"Nach rechts"</string>
     <string name="keyboard_headset_required_to_hear_password" msgid="2529485509348781553">"Schließen Sie ein Headset an, um das Passwort gesprochen zu hören."</string>
     <string name="keyboard_password_character_no_headset" msgid="7230328211341305612">"Punkt."</string>
+    <string name="andr36oid_button_hints">A tippen · X löschen · Y Leerzeichen · L1/R1 bewegen · L3 Symbole · R3 groß · Start bestätigen · B schließen</string>
 </resources>

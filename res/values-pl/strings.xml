@@ -37,4 +37,5 @@
     <string name="keyboardview_keycode_right" msgid="7152000779741202144">"W prawo"</string>
     <string name="keyboard_headset_required_to_hear_password" msgid="2529485509348781553">"Podłącz zestaw słuchawkowy, by wysłuchać znaków hasła wypowiadanych na głos."</string>
     <string name="keyboard_password_character_no_headset" msgid="7230328211341305612">"Kropka"</string>
+    <string name="andr36oid_button_hints">A wpisz · X usuń · Y spacja · L1/R1 kursor · L3 symbole · R3 wielkie · Start zatwierdź · B zamknij</string>
 </resources>

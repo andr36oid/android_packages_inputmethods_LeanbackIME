@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- andr36oid: the focus ring of the setup wizard's buttons (andr36oid_setup_focus), drawn
+     around the focused key, suggestion or action key. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <stroke android:width="2dp" android:color="@color/ime_focus_ring" />
+    <corners android:radius="8dp" />
+</shape>

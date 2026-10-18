@@ -17,17 +17,23 @@
 
 <resources>
 
-    <!-- voice recognition indicator -->
     <color name="search_mic_levels_guideline">#FFCCCCCC</color>
     <color name="search_mic_background">#FFFFFFFF</color>
 
-    <color name="keyboard_background">#FF384248</color>
-    <color name="key_text_default">#FFEEEEEE</color>
+    <!-- andr36oid: true dark. Black under the keys, dark keys, white labels. The focused key
+         and the action key take the system accent colour (LeanbackUtils.getAccentColor);
+         ime_accent_fallback (R36S clear purple, dark theme) is only used if that fails. -->
+    <color name="keyboard_background">#FF000000</color>
+    <color name="key_background">#FF1A1A1A</color>
+    <color name="key_text_default">#FFFFFFFF</color>
+    <color name="ime_focus_ring">#FFFFFFFF</color>
+    <color name="ime_accent_fallback">#FFC8A2F0</color>
+    <color name="ime_hint_text">#B3FFFFFF</color>
     <color name="ime_selector_focus_color">#66EEEEEE</color>
     <color name="ime_selector_color">#26EEEEEE</color>
 
-    <color name="candidate_background">#FF263238</color>
-    <color name="candidate_font_color">#FF30C6B4</color>
+    <color name="candidate_background">#FF000000</color>
+    <color name="candidate_font_color">#FFFFFFFF</color>
 
-    <color name="enter_key_font_color">#FF30C6B4</color>
+    <color name="enter_key_font_color">#FF000000</color>
 </resources>

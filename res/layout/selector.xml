@@ -27,6 +27,6 @@
         android:layout_height="match_parent"
         android:clipChildren="false"
         android:scaleType="centerInside"
-        android:background="@drawable/key_selector" />
+        android:background="@drawable/ime_focus_ring" />
 
 </FrameLayout>

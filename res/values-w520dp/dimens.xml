@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- andr36oid: landscape and square screens (640x480, 720x720, 1024x768 at our densities) -->
+<resources>
+    <!-- Keys: the space key is 7 keys and 6 gaps wide. -->
+    <dimen name="key_width">32dp</dimen>
+    <dimen name="key_height">25dp</dimen>
+    <dimen name="keyboard_horizontal_gap">6dp</dimen>
+    <dimen name="keyboard_vertical_gap">5dp</dimen>
+    <dimen name="space_key_width">260dp</dimen>
+    <dimen name="key_corner_radius">6dp</dimen>
+    <dimen name="key_font_size">17sp</dimen>
+    <dimen name="function_key_mode_change_font_size">12sp</dimen>
+
+    <!-- Action key (Done, Next, Search, the app's own label) right of the keys -->
+    <dimen name="action_key_width">88dp</dimen>
+    <dimen name="action_key_margin">8dp</dimen>
+    <dimen name="enter_key_height">55dp</dimen>
+    <dimen name="enter_key_font_size">15sp</dimen>
+    <dimen name="enter_key_padding_horizontal">6dp</dimen>
+
+    <!-- Focus ring around the focused key, like the setup wizard's buttons: 2dp outside it -->
+    <dimen name="focus_ring_outset">2dp</dimen>
+
+    <!-- Suggestions line above, button hints below -->
+    <dimen name="candidate_font_size">15sp</dimen>
+    <dimen name="candidate_padding_horizontal">10dp</dimen>
+    <dimen name="candidate_margin_horizontal">2dp</dimen>
+    <dimen name="candidate_height">24dp</dimen>
+    <dimen name="candidate_scroll_view_horz_spacing">8dp</dimen>
+    <dimen name="keyboard_top_spacing">4dp</dimen>
+    <dimen name="keyboard_side_padding">8dp</dimen>
+    <dimen name="keyboard_bottom_spacing">2dp</dimen>
+    <dimen name="button_hints_height">16dp</dimen>
+    <dimen name="button_hints_font_size">11sp</dimen>
+</resources>

@@ -26,6 +26,8 @@
     android:focusable="true"
     android:gravity="bottom|center_horizontal"
     android:orientation="vertical"
+    android:paddingLeft="@dimen/keyboard_side_padding"
+    android:paddingRight="@dimen/keyboard_side_padding"
     android:paddingBottom="@dimen/keyboard_bottom_spacing" >
 
     <View
@@ -41,7 +43,7 @@
     <HorizontalScrollView
         android:id="@+id/suggestions_container"
         android:layout_width="wrap_content"
-        android:layout_height="@dimen/key_height"
+        android:layout_height="@dimen/candidate_height"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginLeft="@dimen/candidate_scroll_view_horz_spacing"
@@ -49,6 +51,7 @@
         android:clipChildren="false"
         android:fillViewport="false"
         android:gravity="center"
+        android:overScrollMode="never"
         android:scrollbars="none" >
 
         <LinearLayout
@@ -74,6 +77,28 @@
 
         <include layout="@layout/input_leanback" />
     </LinearLayout>
+
+    <!-- andr36oid: which game button does what. The keyboard handles these buttons itself
+         (LeanbackKeyboardController); every key is also reachable with the d-pad and A.
+         Button names are made bold in LeanbackKeyboardContainer. -->
+    <TextView
+        android:id="@+id/button_hints"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/button_hints_height"
+        android:layout_below="@+id/keyboard"
+        android:layout_marginTop="@dimen/keyboard_top_spacing"
+        android:autoSizeTextType="uniform"
+        android:autoSizeMinTextSize="8sp"
+        android:autoSizeMaxTextSize="@dimen/button_hints_font_size"
+        android:ellipsize="end"
+        android:focusable="false"
+        android:fontFamily="sans-serif"
+        android:gravity="center"
+        android:importantForAccessibility="no"
+        android:maxLines="1"
+        android:text="@string/andr36oid_button_hints"
+        android:textColor="@color/ime_hint_text"
+        android:textSize="@dimen/button_hints_font_size" />
 
     <include layout="@layout/selector"/>
 </RelativeLayout>

@@ -19,7 +19,8 @@
     <!-- scale of clicked selector -->
     <item name="clicked_scale" type="fraction">88%</item>
     <!-- amount to overestimate selector scaling by -->
-    <item name="focused_scale" type="fraction">120%</item>
+    <!-- andr36oid: no zoom, the accent fill and the ring around the key show the focus -->
+    <item name="focused_scale" type="fraction">100%</item>
     <!-- alpha value for active keyboards and dictation/voice mode -->
     <item name="alpha_in" type="fraction">100%</item>
     <!-- alpha value for inactive keyboards and dictation/voice mode -->

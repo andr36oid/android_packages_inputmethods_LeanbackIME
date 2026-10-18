@@ -20,6 +20,7 @@ import android.content.Context;
 
 import java.util.ArrayList;
 
+import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.content.res.XmlResourceParser;
@@ -28,7 +29,11 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Paint.Align;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.StateListDrawable;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.Keyboard.Key;
 import android.inputmethodservice.Keyboard.Row;
@@ -96,6 +101,11 @@ public class LeanbackKeyboardView extends FrameLayout {
     private int mModeChangeTextSize;
     private int mKeyTextSize;
     private int mKeyTextColor;
+    // andr36oid look: dark rounded keys; the focused key is filled with the system accent
+    private final int mKeyBackgroundColor;
+    private final int mAccentColor;
+    private final float mKeyCornerRadius;
+    private final ColorStateList mKeyLabelColors;
     private int mRowCount;
     private int mColCount;
 
@@ -131,6 +141,12 @@ public class LeanbackKeyboardView extends FrameLayout {
         mModeChangeTextSize = (int) res.getDimension(R.dimen.function_key_mode_change_font_size);
 
         mKeyTextColor = res.getColor(R.color.key_text_default);
+        mKeyBackgroundColor = res.getColor(R.color.key_background);
+        mAccentColor = LeanbackUtils.getAccentColor(context);
+        mKeyCornerRadius = res.getDimension(R.dimen.key_corner_radius);
+        mKeyLabelColors = new ColorStateList(
+                new int[][] { { android.R.attr.state_selected }, {} },
+                new int[] { LeanbackUtils.getContrastColor(mAccentColor), mKeyTextColor });
 
         mFocusIndex = -1;
 
@@ -280,7 +296,18 @@ public class LeanbackKeyboardView extends FrameLayout {
 
         canvas.drawARGB(0, 0,  0,  0);
 
-        if (key.icon != null) {
+        if (key.codes[0] == ASCII_SPACE) {
+            // The space icon is a full-width bar, which on a filled key reads as a second
+            // key. A short bar near the bottom, like the space mark on keycaps, instead.
+            final float density = getResources().getDisplayMetrics().density;
+            final float barWidth = Math.min(key.width * 0.3f, 48 * density);
+            final float barHeight = 2 * density;
+            final float left = (key.width - barWidth) / 2;
+            final float top = key.height * 0.62f;
+            paint.setStyle(Paint.Style.FILL);
+            canvas.drawRoundRect(new RectF(left, top, left + barWidth, top + barHeight),
+                    barHeight / 2, barHeight / 2, paint);
+        } else if (key.icon != null) {
             if (key.codes[0] == Keyboard.KEYCODE_SHIFT) {
                 switch (mShiftState) {
                     case SHIFT_OFF:
@@ -309,10 +336,11 @@ public class LeanbackKeyboardView extends FrameLayout {
             // small font.
             if (label.length() > 1) {
                 paint.setTextSize(mModeChangeTextSize);
-                paint.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
+                paint.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
             } else {
                 paint.setTextSize(mKeyTextSize);
-                paint.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
+                // Regular, not light: thin strokes break up on a 640x480 panel
+                paint.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
             }
             // Draw the text
             canvas.drawText(label,
@@ -328,16 +356,42 @@ public class LeanbackKeyboardView extends FrameLayout {
         ImageView view = new ImageView(getContext());
         view.setImageBitmap(bitmap);
         view.setContentDescription(label);
+        // The label and icons are drawn white and tinted: white on the dark key, black or
+        // white (whichever reads better) on the accent of the focused key.
+        view.setBackground(createKeyBackground());
+        view.setImageTintList(mKeyLabelColors);
+        if (keyIndex == mFocusIndex) {
+            // Redrawn (shift, accents popup): the new view is the focused one now
+            view.setSelected(true);
+            mCurrentFocusView = view;
+        }
         addView(view, new ViewGroup.LayoutParams(LayoutParams.WRAP_CONTENT,
                 LayoutParams.WRAP_CONTENT));
 
         view.setX(key.x + kbdPaddingLeft);
         view.setY(key.y + kbdPaddingTop);
-        view.setImageAlpha(mMiniKeyboardOnScreen && !keyHolder.isInMiniKb ?
-                mInactiveMiniKbAlpha : 255);
+        // Dim the whole key, its background too, behind the accents popup
+        view.setAlpha(mMiniKeyboardOnScreen && !keyHolder.isInMiniKb ?
+                mInactiveMiniKbAlpha / 255f : 1f);
         view.setVisibility(View.VISIBLE);
 
         return view;
+    }
+
+    private Drawable createKeyBackground() {
+        final StateListDrawable background = new StateListDrawable();
+        background.addState(new int[] { android.R.attr.state_selected },
+                createRoundRect(mAccentColor));
+        background.addState(new int[0], createRoundRect(mKeyBackgroundColor));
+        return background;
+    }
+
+    private GradientDrawable createRoundRect(int color) {
+        final GradientDrawable shape = new GradientDrawable();
+        shape.setShape(GradientDrawable.RECTANGLE);
+        shape.setCornerRadius(mKeyCornerRadius);
+        shape.setColor(color);
+        return shape;
     }
 
     private void createKeyImageViews(KeyHolder[] keys) {
@@ -458,6 +512,7 @@ public class LeanbackKeyboardView extends FrameLayout {
             }
 
             if (mCurrentFocusView != null) {
+                mCurrentFocusView.setSelected(false);
                 mCurrentFocusView.animate().scaleX(1f).scaleY(1f)
                         .setInterpolator(LeanbackKeyboardContainer.sMovementInterpolator)
                         .setStartDelay(mUnfocusStartDelay);
@@ -468,6 +523,7 @@ public class LeanbackKeyboardView extends FrameLayout {
             if (index != NOT_A_KEY) {
                 float scale = clicked ? mClickedScale : (showFocusScale ? mFocusedScale : 1.0f);
                 mCurrentFocusView = mKeyImageViews[index];
+                mCurrentFocusView.setSelected(true);
                 mCurrentFocusView.animate().scaleX(scale).scaleY(scale)
                         .setInterpolator(LeanbackKeyboardContainer.sMovementInterpolator)
                         .setDuration(mClickAnimDur).start();
