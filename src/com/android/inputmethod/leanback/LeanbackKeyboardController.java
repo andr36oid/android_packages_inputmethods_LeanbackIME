@@ -71,6 +71,7 @@ public class LeanbackKeyboardController implements LeanbackKeyboardContainer.Voi
         public static final int ENTRY_TYPE_VOICE = 6;
         public static final int ENTRY_TYPE_DISMISS = 7;
         public static final int ENTRY_TYPE_VOICE_DISMISS = 8;
+        public static final int ENTRY_TYPE_CLOSE = 9;
 
         /**
          * Sent when the user has selected something that should affect the text
@@ -149,6 +150,9 @@ public class LeanbackKeyboardController implements LeanbackKeyboardContainer.Voi
     private PointF mTempPoint = new PointF();
 
     private boolean mKeyDownReceived = false;
+    // B and Start act on release; these remember that the keyboard took the press.
+    private boolean mCloseKeyDown = false;
+    private boolean mActionKeyDown = false;
     private boolean mLongPressHandled = false;
     private KeyFocus mKeyDownKeyFocus;
     private int mMoveCount;
@@ -184,6 +188,8 @@ public class LeanbackKeyboardController implements LeanbackKeyboardContainer.Voi
      */
     public void onStartInputView() {
         mKeyDownReceived = false;
+        mCloseKeyDown = false;
+        mActionKeyDown = false;
         if (mContainer != null) {
             mContainer.onStartInputView();
         }
@@ -445,6 +451,23 @@ public class LeanbackKeyboardController implements LeanbackKeyboardContainer.Voi
     }
 
     private boolean handleKeyDownEvent(int keyCode, int eventRepeatCount) {
+        // B closes the keyboard. It used to go unhandled here and only worked through the
+        // BACK fallback of the console's key map, which never comes when the app (a game, a
+        // Flutter app) takes B itself: then the app went back and the keyboard stayed.
+        if (keyCode == KeyEvent.KEYCODE_BUTTON_B) {
+            if (eventRepeatCount == 0) {
+                mCloseKeyDown = true;
+            }
+            return true;
+        }
+        // Start presses the action key (Done, Next, Search, or the app's own label).
+        if (keyCode == KeyEvent.KEYCODE_BUTTON_START) {
+            if (eventRepeatCount == 0 && !mContainer.isVoiceVisible()) {
+                mActionKeyDown = true;
+            }
+            return true;
+        }
+
         keyCode = getSimplifiedKey(keyCode);
 
         // never trap back
@@ -536,6 +559,28 @@ public class LeanbackKeyboardController implements LeanbackKeyboardContainer.Voi
      * @return true if the key was handled, false otherwise
      */
     private boolean handleKeyUpEvent(int keyCode, long currTime) {
+        if (keyCode == KeyEvent.KEYCODE_BUTTON_B) {
+            if (!mCloseKeyDown) {
+                return false;
+            }
+            mCloseKeyDown = false;
+            if (mContainer.isVoiceVisible()) {
+                mContainer.cancelVoiceRecording();
+            } else {
+                mInputListener.onEntry(InputListener.ENTRY_TYPE_CLOSE, 0, null);
+            }
+            return true;
+        }
+        if (keyCode == KeyEvent.KEYCODE_BUTTON_START) {
+            if (!mActionKeyDown) {
+                return false;
+            }
+            mActionKeyDown = false;
+            playSound(AudioManager.FX_KEYPRESS_RETURN);
+            mInputListener.onEntry(InputListener.ENTRY_TYPE_ACTION, 0, null);
+            return true;
+        }
+
         keyCode = getSimplifiedKey(keyCode);
 
         // never trap back
@@ -622,9 +667,6 @@ public class LeanbackKeyboardController implements LeanbackKeyboardContainer.Voi
         keyCode = (keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
                 keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER ||
                 keyCode == KeyEvent.KEYCODE_BUTTON_A) ? KeyEvent.KEYCODE_DPAD_CENTER : keyCode;
-
-        // simply for back
-        keyCode = (keyCode == KeyEvent.KEYCODE_BUTTON_B ? KeyEvent.KEYCODE_BACK : keyCode);
 
         return keyCode;
     }

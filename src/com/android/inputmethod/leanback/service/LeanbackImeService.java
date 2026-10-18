@@ -76,6 +76,9 @@ public class LeanbackImeService extends InputMethodService {
     private boolean mEnterSpaceBeforeCommitting;
 
     private boolean mShouldClearSuggestions = true;
+
+    // The keyboard is showing for a real text field (not a button or a view without text).
+    private boolean mShownForText;
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -125,6 +128,7 @@ public class LeanbackImeService extends InputMethodService {
     @Override
     public void onStartInputView(EditorInfo info, boolean restarting) {
         super.onStartInputView(info, restarting);
+        mShownForText = isTextEditor(info);
         mKeyboardController.onStartInputView();
         sendBroadcast(new Intent(IME_OPEN));
 
@@ -147,6 +151,10 @@ public class LeanbackImeService extends InputMethodService {
     @Override
     public void onFinishInputView(boolean finishingInput) {
         super.onFinishInputView(finishingInput);
+        if (!finishingInput) {
+            // Hidden (B, the action key, the app): the next start is not a focus move.
+            mShownForText = false;
+        }
         sendBroadcast(new Intent(IME_CLOSE));
         mSuggestionsFactory.clearSuggestions();
     }
@@ -158,6 +166,14 @@ public class LeanbackImeService extends InputMethodService {
     @Override
     public void onStartInput(EditorInfo attribute, boolean restarting) {
         super.onStartInput(attribute, restarting);
+        // Focus went from the text field to something that takes no text while the keyboard
+        // was up: Next moved it to a dialog's OK button, or the app moved it. Android keeps the
+        // keyboard up there, and as it takes every button press the button can't be pressed
+        // and nothing gets typed. Close it; A on the text field opens it again.
+        if (mShownForText && isInputViewShown() && !isTextEditor(attribute)) {
+            mShownForText = false;
+            requestHideSelf(0);
+        }
         mEnterSpaceBeforeCommitting = false;
         mSuggestionsFactory.onStartInput(attribute);
         mKeyboardController.onStartInput(attribute);
@@ -264,7 +280,16 @@ public class LeanbackImeService extends InputMethodService {
         InputConnection ic = getCurrentInputConnection();
         boolean updateSuggestions = true;
 
+        // Closing must work even when the app's connection is gone, or the keyboard stays up
+        // with nothing left to type into.
+        if (type == LeanbackKeyboardController.InputListener.ENTRY_TYPE_CLOSE) {
+            requestHideSelf(0);
+            return;
+        }
         if (ic == null) {
+            if (type == LeanbackKeyboardController.InputListener.ENTRY_TYPE_ACTION) {
+                requestHideSelf(0);
+            }
             return;
         }
 
@@ -368,5 +393,10 @@ public class LeanbackImeService extends InputMethodService {
 
     public void onHideIme() {
         requestHideSelf(0);
+    }
+
+    private static boolean isTextEditor(EditorInfo info) {
+        return info != null
+                && (info.inputType & EditorInfo.TYPE_MASK_CLASS) != EditorInfo.TYPE_NULL;
     }
 }
